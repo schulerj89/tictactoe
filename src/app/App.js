@@ -28,9 +28,11 @@ export class App {
   }
 
   showTitleScreen() {
+    const settings = this.resolveSettings();
+
     this.renderScreen(
       new TitleScreen({
-        settings: this.settings.getState(),
+        settings,
         stats: this.lifetimeStats,
         onStart: () => this.startGame(),
         onOpenSettings: () => this.showSettingsScreen(),
@@ -52,13 +54,14 @@ export class App {
   }
 
   startGame({ resetMatchScore = true } = {}) {
-    const settings = this.settings.getState();
+    const settings = this.resolveSettings();
 
     if (resetMatchScore) {
       this.matchScore.X = 0;
       this.matchScore.O = 0;
     }
 
+    this.aiPlayer.symbol = settings.aiSymbol;
     this.game.start(settings);
 
     this.renderScreen(
@@ -71,12 +74,21 @@ export class App {
         stats: this.lifetimeStats,
         onRoundComplete: (winner) => {
           const latestStats = this.statsStore.recordResult(winner);
+          let matchWinner = null;
 
           if (winner) {
             this.matchScore[winner] += 1;
+            if (this.matchScore[winner] >= this.getWinsNeeded(settings.bestOf)) {
+              matchWinner = winner;
+            }
           }
 
           Object.assign(this.lifetimeStats, latestStats);
+
+          return {
+            matchWinner,
+            stats: this.lifetimeStats,
+          };
         },
         onNextRound: () => this.startGame({ resetMatchScore: false }),
         onRestartMatch: () => this.startGame({ resetMatchScore: true }),
@@ -93,5 +105,28 @@ export class App {
     this.activeScreen = screen;
     this.rootElement.innerHTML = "";
     this.rootElement.append(screen.render());
+  }
+
+  resolveSettings() {
+    const settings = this.settings.getState();
+
+    if (settings.opponentType !== "computer") {
+      return settings;
+    }
+
+    const aiSymbol = settings.aiSymbol || "O";
+    const humanSymbol = aiSymbol === "X" ? "O" : "X";
+
+    return {
+      ...settings,
+      aiSymbol,
+      playerXName: aiSymbol === "X" ? "CPU" : settings.playerXName,
+      playerOName: aiSymbol === "O" ? "CPU" : settings.playerOName,
+      humanSymbol,
+    };
+  }
+
+  getWinsNeeded(bestOf) {
+    return Math.floor(bestOf / 2) + 1;
   }
 }

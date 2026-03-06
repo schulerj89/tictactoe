@@ -10,6 +10,9 @@ export class SettingsScreen {
     screen.className = "screen shell";
 
     const isComputerOpponent = this.settings.opponentType === "computer";
+    const aiSymbol = this.settings.aiSymbol || "O";
+    const isXControlledByAi = isComputerOpponent && aiSymbol === "X";
+    const isOControlledByAi = isComputerOpponent && aiSymbol === "O";
 
     screen.innerHTML = `
       <section class="panel settings-panel">
@@ -30,7 +33,12 @@ export class SettingsScreen {
           </label>
           <label class="field">
             <span>Player X Name</span>
-            <input name="playerXName" maxlength="14" value="${this.settings.playerXName}" />
+            <input
+              name="playerXName"
+              maxlength="14"
+              value="${this.settings.playerXName}"
+              ${isXControlledByAi ? "disabled" : ""}
+            />
           </label>
           <label class="field">
             <span>Player O Name</span>
@@ -38,8 +46,15 @@ export class SettingsScreen {
               name="playerOName"
               maxlength="14"
               value="${this.settings.playerOName}"
-              ${isComputerOpponent ? "disabled" : ""}
+              ${isOControlledByAi ? "disabled" : ""}
             />
+          </label>
+          <label class="field ai-field ${isComputerOpponent ? "" : "is-hidden"}">
+            <span>Computer Plays As</span>
+            <select name="aiSymbol">
+              <option value="O" ${aiSymbol === "O" ? "selected" : ""}>O</option>
+              <option value="X" ${aiSymbol === "X" ? "selected" : ""}>X</option>
+            </select>
           </label>
           <label class="field ai-field ${isComputerOpponent ? "" : "is-hidden"}">
             <span>AI Difficulty</span>
@@ -54,6 +69,14 @@ export class SettingsScreen {
             <select name="startingPlayer">
               <option value="X" ${this.settings.startingPlayer === "X" ? "selected" : ""}>X</option>
               <option value="O" ${this.settings.startingPlayer === "O" ? "selected" : ""}>O</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Match Length</span>
+            <select name="bestOf">
+              <option value="1" ${Number(this.settings.bestOf) === 1 ? "selected" : ""}>Single Round</option>
+              <option value="3" ${Number(this.settings.bestOf) === 3 ? "selected" : ""}>Best of 3</option>
+              <option value="5" ${Number(this.settings.bestOf) === 5 ? "selected" : ""}>Best of 5</option>
             </select>
           </label>
           <label class="field checkbox-field">
@@ -79,37 +102,68 @@ export class SettingsScreen {
 
     const form = screen.querySelector(".settings-form");
     const opponentSelect = form?.querySelector('[name="opponentType"]');
+    const aiSymbolSelect = form?.querySelector('[name="aiSymbol"]');
+    const playerXInput = form?.querySelector('[name="playerXName"]');
     const playerOInput = form?.querySelector('[name="playerOName"]');
-    const aiField = form?.querySelector(".ai-field");
+    const aiFields = form?.querySelectorAll(".ai-field");
 
-    opponentSelect?.addEventListener("change", () => {
+    const syncComputerFields = () => {
+      if (!opponentSelect || !form) {
+        return;
+      }
+
       const isComputer = opponentSelect.value === "computer";
+      const selectedAiSymbol = aiSymbolSelect instanceof HTMLSelectElement ? aiSymbolSelect.value : "O";
 
-      if (playerOInput instanceof HTMLInputElement) {
-        playerOInput.disabled = isComputer;
-        if (isComputer && !playerOInput.value.trim()) {
-          playerOInput.value = "CPU";
+      aiFields?.forEach((field) => field.classList.toggle("is-hidden", !isComputer));
+
+      if (playerXInput instanceof HTMLInputElement) {
+        const disableX = isComputer && selectedAiSymbol === "X";
+        playerXInput.disabled = disableX;
+        if (disableX) {
+          playerXInput.value = "CPU";
         }
       }
 
-      aiField?.classList.toggle("is-hidden", !isComputer);
+      if (playerOInput instanceof HTMLInputElement) {
+        const disableO = isComputer && selectedAiSymbol === "O";
+        playerOInput.disabled = disableO;
+        if (disableO) {
+          playerOInput.value = "CPU";
+        }
+      }
+    };
+
+    opponentSelect?.addEventListener("change", () => {
+      syncComputerFields();
     });
+    aiSymbolSelect?.addEventListener("change", syncComputerFields);
+    syncComputerFields();
 
     form?.addEventListener("submit", (event) => {
       event.preventDefault();
       const formData = new FormData(form);
       const opponentType = String(formData.get("opponentType") || "computer");
+      const selectedAiSymbol = String(formData.get("aiSymbol") || "O");
+
+      const playerXName =
+        opponentType === "computer" && selectedAiSymbol === "X"
+          ? "CPU"
+          : String(formData.get("playerXName") || "").trim() || "Player X";
+      const playerOName =
+        opponentType === "computer" && selectedAiSymbol === "O"
+          ? "CPU"
+          : String(formData.get("playerOName") || "").trim() || "Player O";
 
       this.onSave({
-        playerXName: String(formData.get("playerXName") || "").trim() || "Player X",
-        playerOName:
-          opponentType === "computer"
-            ? "CPU"
-            : String(formData.get("playerOName") || "").trim() || "Player O",
+        playerXName,
+        playerOName,
         startingPlayer: String(formData.get("startingPlayer") || "X"),
         showScoreboard: formData.get("showScoreboard") === "on",
         opponentType,
+        aiSymbol: selectedAiSymbol,
         aiDifficulty: String(formData.get("aiDifficulty") || "medium"),
+        bestOf: Number(formData.get("bestOf") || 3),
         soundEnabled: formData.get("soundEnabled") === "on",
       });
     });

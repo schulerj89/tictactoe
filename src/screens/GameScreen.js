@@ -24,6 +24,7 @@ export class GameScreen {
     this.roundFinished = false;
     this.aiMoveTimeout = null;
     this.isAiThinking = false;
+    this.matchWinner = null;
   }
 
   render() {
@@ -44,6 +45,7 @@ export class GameScreen {
       <p class="eyebrow">Live Match</p>
       <h2>${this.game.getPlayerName("X")} vs ${this.game.getPlayerName("O")}</h2>
       <p class="mode-pill">${this.getModeLabel()}</p>
+      <p class="match-target">First to ${this.getWinsNeeded()} wins</p>
       <p class="status-text">${this.game.getStatus()}</p>
       <div class="action-stack">
         <button class="button button-primary" type="button" data-action="restart">New Match</button>
@@ -157,7 +159,14 @@ export class GameScreen {
 
     overlay
       .querySelector('[data-action="next-round"]')
-      ?.addEventListener("click", this.onNextRound);
+      ?.addEventListener("click", () => {
+        if (this.matchWinner) {
+          this.onRestartMatch();
+          return;
+        }
+
+        this.onNextRound();
+      });
     overlay
       .querySelector('[data-action="new-match"]')
       ?.addEventListener("click", this.onRestartMatch);
@@ -179,7 +188,7 @@ export class GameScreen {
       return;
     }
 
-    this.soundManager.playMove(this.game.board[index], this.settings.soundEnabled);
+      this.soundManager.playMove(this.game.board[index], this.settings.soundEnabled);
     this.refreshBoard(screen);
     this.completeRoundIfNeeded(screen);
     this.maybePlayAiTurn(screen);
@@ -235,7 +244,8 @@ export class GameScreen {
   completeRoundIfNeeded(screen) {
     if ((this.game.winner || this.game.isDraw()) && !this.roundFinished) {
       this.roundFinished = true;
-      this.onRoundComplete(this.game.winner);
+      const roundResult = this.onRoundComplete(this.game.winner) || {};
+      this.matchWinner = roundResult.matchWinner || null;
 
       if (this.game.winner) {
         this.refreshScore(screen, this.game.winner);
@@ -259,8 +269,13 @@ export class GameScreen {
     const copy = screen.querySelector("[data-modal-copy]");
     const matchScore = screen.querySelector("[data-modal-match-score]");
     const lifetime = screen.querySelector("[data-modal-lifetime]");
+    const nextRoundButton = screen.querySelector('[data-action="next-round"]');
 
-    if (this.game.winner) {
+    if (this.matchWinner) {
+      const championName = this.game.getPlayerName(this.matchWinner);
+      title.textContent = `${championName} wins the match`;
+      copy.textContent = `${championName} reached the target first and closes out the set. Start another match or head back to the menu.`;
+    } else if (this.game.winner) {
       const winnerName = this.game.getPlayerName(this.game.winner);
       title.textContent = `${winnerName} takes the round`;
       copy.textContent = `${winnerName} closed the board cleanly. Keep the set going or reset for a fresh match.`;
@@ -271,6 +286,9 @@ export class GameScreen {
 
     matchScore.textContent = `${this.score.X} - ${this.score.O}`;
     lifetime.textContent = `${this.stats.wins.X} wins / ${this.stats.draws} draws / ${this.stats.wins.O} wins`;
+    if (nextRoundButton) {
+      nextRoundButton.textContent = this.matchWinner ? "Play New Match" : "Next Round";
+    }
 
     overlay.classList.remove("is-hidden");
     overlay.setAttribute("aria-hidden", "false");
@@ -309,10 +327,14 @@ export class GameScreen {
 
   getModeLabel() {
     if (this.settings.opponentType === "computer") {
-      return `Computer / ${this.settings.aiDifficulty}`;
+      return `Computer / ${this.settings.aiDifficulty} / ${this.aiPlayer.symbol}`;
     }
 
     return "Local Versus";
+  }
+
+  getWinsNeeded() {
+    return Math.floor(Number(this.settings.bestOf || 1) / 2) + 1;
   }
 
   updateStatusText(screen, message) {

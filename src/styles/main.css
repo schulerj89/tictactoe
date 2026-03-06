@@ -251,6 +251,13 @@ h2 {
   color: var(--muted);
 }
 
+.match-target {
+  margin: 14px 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .mode-pill {
   display: inline-flex;
   margin: 16px 0 0;

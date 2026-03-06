@@ -9,8 +9,10 @@ export class TitleScreen {
   render() {
     const modeLabel =
       this.settings.opponentType === "computer"
-        ? `Computer / ${this.settings.aiDifficulty}`
+        ? `Computer / ${this.settings.aiDifficulty} / ${this.settings.aiSymbol}`
         : "Local Versus";
+    const matchLabel =
+      Number(this.settings.bestOf) === 1 ? "Single Round" : `Best of ${this.settings.bestOf}`;
 
     const screen = document.createElement("main");
     screen.className = "screen shell";
@@ -44,6 +46,10 @@ export class TitleScreen {
         <article>
           <p class="info-label">Opener</p>
           <p class="info-value">${this.settings.startingPlayer}</p>
+        </article>
+        <article>
+          <p class="info-label">Match</p>
+          <p class="info-value">${matchLabel}</p>
         </article>
       </section>
       <section class="panel stats-panel">

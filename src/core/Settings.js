@@ -6,7 +6,9 @@ const DEFAULT_SETTINGS = {
   startingPlayer: "X",
   showScoreboard: true,
   opponentType: "computer",
+  aiSymbol: "O",
   aiDifficulty: "medium",
+  bestOf: 3,
   soundEnabled: true,
 };
 
