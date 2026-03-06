@@ -5,6 +5,8 @@ const DEFAULT_SETTINGS = {
   playerOName: "Pixel",
   startingPlayer: "X",
   showScoreboard: true,
+  opponentType: "computer",
+  aiDifficulty: "medium",
 };
 
 export class Settings {

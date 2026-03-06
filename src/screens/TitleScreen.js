@@ -6,6 +6,11 @@ export class TitleScreen {
   }
 
   render() {
+    const modeLabel =
+      this.settings.opponentType === "computer"
+        ? `Computer · ${this.settings.aiDifficulty}`
+        : "Local Versus";
+
     const screen = document.createElement("main");
     screen.className = "screen shell";
 
@@ -30,6 +35,10 @@ export class TitleScreen {
         <article>
           <p class="info-label">Player O</p>
           <p class="info-value">${this.settings.playerOName}</p>
+        </article>
+        <article>
+          <p class="info-label">Mode</p>
+          <p class="info-value">${modeLabel}</p>
         </article>
         <article>
           <p class="info-label">Opener</p>

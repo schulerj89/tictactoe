@@ -1,18 +1,22 @@
 export class GameScreen {
-  constructor({ game, settings, score, onRoundComplete, onRestart, onOpenMenu }) {
+  constructor({ game, settings, aiPlayer, score, onRoundComplete, onRestart, onOpenMenu }) {
     this.game = game;
     this.settings = settings;
+    this.aiPlayer = aiPlayer;
     this.score = score;
     this.onRoundComplete = onRoundComplete;
     this.onRestart = onRestart;
     this.onOpenMenu = onOpenMenu;
     this.roundFinished = false;
+    this.aiMoveTimeout = null;
+    this.isAiThinking = false;
   }
 
   render() {
     const screen = document.createElement("main");
     screen.className = "screen shell";
     screen.append(this.buildLayout(screen));
+    this.maybePlayAiTurn(screen);
     return screen;
   }
 
@@ -25,6 +29,7 @@ export class GameScreen {
     sidebar.innerHTML = `
       <p class="eyebrow">Live Match</p>
       <h2>${this.game.getPlayerName("X")} vs ${this.game.getPlayerName("O")}</h2>
+      <p class="mode-pill">${this.getModeLabel()}</p>
       <p class="status-text">${this.game.getStatus()}</p>
       <div class="action-stack">
         <button class="button button-primary" type="button" data-action="restart">Restart</button>
@@ -85,6 +90,10 @@ export class GameScreen {
   }
 
   handleMove(index, screen) {
+    if (this.isAiTurn()) {
+      return;
+    }
+
     const moved = this.game.makeMove(index);
 
     if (!moved) {
@@ -92,20 +101,15 @@ export class GameScreen {
     }
 
     this.refreshBoard(screen);
-
-    if ((this.game.winner || this.game.isDraw()) && !this.roundFinished) {
-      this.roundFinished = true;
-      this.onRoundComplete(this.game.winner);
-      if (this.game.winner) {
-        this.refreshScore(screen, this.game.winner);
-      }
-    }
+    this.completeRoundIfNeeded(screen);
+    this.maybePlayAiTurn(screen);
   }
 
   refreshBoard(screen) {
     this.cells.forEach((cell, index) => {
       cell.textContent = this.game.board[index] || "";
-      cell.disabled = Boolean(this.game.board[index]) || Boolean(this.game.winner);
+      cell.disabled =
+        Boolean(this.game.board[index]) || this.game.isFinished() || this.isAiThinking;
       cell.classList.toggle("winning-cell", this.game.winningLine.includes(index));
     });
 
@@ -119,6 +123,67 @@ export class GameScreen {
     const scoreElement = screen.querySelector(`[data-score="${symbol}"]`);
     if (scoreElement) {
       scoreElement.textContent = String(this.score[symbol]);
+    }
+  }
+
+  completeRoundIfNeeded(screen) {
+    if ((this.game.winner || this.game.isDraw()) && !this.roundFinished) {
+      this.roundFinished = true;
+      this.onRoundComplete(this.game.winner);
+      if (this.game.winner) {
+        this.refreshScore(screen, this.game.winner);
+      }
+    }
+  }
+
+  maybePlayAiTurn(screen) {
+    if (!this.isAiTurn() || this.game.isFinished()) {
+      return;
+    }
+
+    this.isAiThinking = true;
+    this.updateStatusText(screen, "Computer is thinking...");
+    this.refreshBoard(screen);
+
+    this.aiMoveTimeout = window.setTimeout(() => {
+      const move = this.aiPlayer.chooseMove(this.game, this.settings.aiDifficulty);
+      this.isAiThinking = false;
+
+      if (move !== null) {
+        this.game.makeMove(move);
+      }
+
+      this.refreshBoard(screen);
+      this.completeRoundIfNeeded(screen);
+    }, 450);
+  }
+
+  isAiTurn() {
+    return (
+      this.settings.opponentType === "computer" &&
+      this.game.currentPlayer === this.aiPlayer.symbol &&
+      !this.roundFinished
+    );
+  }
+
+  getModeLabel() {
+    if (this.settings.opponentType === "computer") {
+      return `Computer · ${this.settings.aiDifficulty}`;
+    }
+
+    return "Local Versus";
+  }
+
+  updateStatusText(screen, message) {
+    const status = screen.querySelector(".status-text");
+    if (status) {
+      status.textContent = message;
+    }
+  }
+
+  destroy() {
+    if (this.aiMoveTimeout) {
+      window.clearTimeout(this.aiMoveTimeout);
     }
   }
 }

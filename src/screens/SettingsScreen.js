@@ -9,6 +9,8 @@ export class SettingsScreen {
     const screen = document.createElement("main");
     screen.className = "screen shell";
 
+    const isComputerOpponent = this.settings.opponentType === "computer";
+
     screen.innerHTML = `
       <section class="panel settings-panel">
         <div class="panel-header">
@@ -20,12 +22,32 @@ export class SettingsScreen {
         </div>
         <form class="settings-form">
           <label class="field">
+            <span>Opponent</span>
+            <select name="opponentType">
+              <option value="computer" ${isComputerOpponent ? "selected" : ""}>Computer</option>
+              <option value="local" ${!isComputerOpponent ? "selected" : ""}>Local Player</option>
+            </select>
+          </label>
+          <label class="field">
             <span>Player X Name</span>
             <input name="playerXName" maxlength="14" value="${this.settings.playerXName}" />
           </label>
           <label class="field">
             <span>Player O Name</span>
-            <input name="playerOName" maxlength="14" value="${this.settings.playerOName}" />
+            <input
+              name="playerOName"
+              maxlength="14"
+              value="${this.settings.playerOName}"
+              ${isComputerOpponent ? "disabled" : ""}
+            />
+          </label>
+          <label class="field ai-field ${isComputerOpponent ? "" : "is-hidden"}">
+            <span>AI Difficulty</span>
+            <select name="aiDifficulty">
+              <option value="easy" ${this.settings.aiDifficulty === "easy" ? "selected" : ""}>Easy</option>
+              <option value="medium" ${this.settings.aiDifficulty === "medium" ? "selected" : ""}>Medium</option>
+              <option value="hard" ${this.settings.aiDifficulty === "hard" ? "selected" : ""}>Hard</option>
+            </select>
           </label>
           <label class="field">
             <span>Starting Player</span>
@@ -48,16 +70,38 @@ export class SettingsScreen {
     `;
 
     const form = screen.querySelector(".settings-form");
+    const opponentSelect = form?.querySelector('[name="opponentType"]');
+    const playerOInput = form?.querySelector('[name="playerOName"]');
+    const aiField = form?.querySelector(".ai-field");
+
+    opponentSelect?.addEventListener("change", () => {
+      const isComputer = opponentSelect.value === "computer";
+
+      if (playerOInput instanceof HTMLInputElement) {
+        playerOInput.disabled = isComputer;
+        if (isComputer && !playerOInput.value.trim()) {
+          playerOInput.value = "CPU";
+        }
+      }
+
+      aiField?.classList.toggle("is-hidden", !isComputer);
+    });
 
     form?.addEventListener("submit", (event) => {
       event.preventDefault();
       const formData = new FormData(form);
+      const opponentType = String(formData.get("opponentType") || "computer");
 
       this.onSave({
         playerXName: String(formData.get("playerXName") || "").trim() || "Player X",
-        playerOName: String(formData.get("playerOName") || "").trim() || "Player O",
+        playerOName:
+          opponentType === "computer"
+            ? "CPU"
+            : String(formData.get("playerOName") || "").trim() || "Player O",
         startingPlayer: String(formData.get("startingPlayer") || "X"),
         showScoreboard: formData.get("showScoreboard") === "on",
+        opponentType,
+        aiDifficulty: String(formData.get("aiDifficulty") || "medium"),
       });
     });
 

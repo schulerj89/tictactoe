@@ -9,6 +9,15 @@ const WINNING_LINES = [
   [2, 4, 6],
 ];
 
+function findWinningLine(board) {
+  return (
+    WINNING_LINES.find(([a, b, c]) => {
+      const cell = board[a];
+      return cell && cell === board[b] && cell === board[c];
+    }) || null
+  );
+}
+
 export class Game {
   constructor() {
     this.board = Array(9).fill(null);
@@ -39,7 +48,7 @@ export class Game {
   }
 
   makeMove(index) {
-    if (this.board[index] || this.winner) {
+    if (this.board[index] || this.isFinished()) {
       return false;
     }
 
@@ -61,16 +70,23 @@ export class Game {
   }
 
   findWinner() {
-    return (
-      WINNING_LINES.find(([a, b, c]) => {
-        const cell = this.board[a];
-        return cell && cell === this.board[b] && cell === this.board[c];
-      }) || null
-    );
+    return findWinningLine(this.board);
   }
 
   isDraw() {
     return this.moveCount === 9 && !this.winner;
+  }
+
+  isFinished() {
+    return Boolean(this.winner) || this.isDraw();
+  }
+
+  getAvailableMoves(board = this.board) {
+    return board.flatMap((cell, index) => (cell ? [] : [index]));
+  }
+
+  static findWinningLine(board) {
+    return findWinningLine(board);
   }
 
   getPlayerName(symbol) {
