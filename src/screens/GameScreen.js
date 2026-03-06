@@ -1,11 +1,25 @@
 export class GameScreen {
-  constructor({ game, settings, aiPlayer, score, onRoundComplete, onRestart, onOpenMenu }) {
+  constructor({
+    game,
+    settings,
+    aiPlayer,
+    soundManager,
+    score,
+    stats,
+    onRoundComplete,
+    onNextRound,
+    onRestartMatch,
+    onOpenMenu,
+  }) {
     this.game = game;
     this.settings = settings;
     this.aiPlayer = aiPlayer;
+    this.soundManager = soundManager;
     this.score = score;
+    this.stats = stats;
     this.onRoundComplete = onRoundComplete;
-    this.onRestart = onRestart;
+    this.onNextRound = onNextRound;
+    this.onRestartMatch = onRestartMatch;
     this.onOpenMenu = onOpenMenu;
     this.roundFinished = false;
     this.aiMoveTimeout = null;
@@ -15,7 +29,7 @@ export class GameScreen {
   render() {
     const screen = document.createElement("main");
     screen.className = "screen shell";
-    screen.append(this.buildLayout(screen));
+    screen.append(this.buildLayout(screen), this.buildRoundModal());
     this.maybePlayAiTurn(screen);
     return screen;
   }
@@ -32,7 +46,7 @@ export class GameScreen {
       <p class="mode-pill">${this.getModeLabel()}</p>
       <p class="status-text">${this.game.getStatus()}</p>
       <div class="action-stack">
-        <button class="button button-primary" type="button" data-action="restart">Restart</button>
+        <button class="button button-primary" type="button" data-action="restart">New Match</button>
         <button class="button button-secondary" type="button" data-action="menu">Main Menu</button>
       </div>
     `;
@@ -41,7 +55,7 @@ export class GameScreen {
       const scoreCard = document.createElement("div");
       scoreCard.className = "score-card";
       scoreCard.innerHTML = `
-        <p class="info-label">Scoreboard</p>
+        <p class="info-label">Match Score</p>
         <div class="score-row">
           <span>${this.game.getPlayerName("X")}</span>
           <strong data-score="X">${this.score.X}</strong>
@@ -53,6 +67,29 @@ export class GameScreen {
       `;
       sidebar.append(scoreCard);
     }
+
+    const lifetimeCard = document.createElement("div");
+    lifetimeCard.className = "score-card";
+    lifetimeCard.innerHTML = `
+      <p class="info-label">Lifetime Stats</p>
+      <div class="score-row">
+        <span>Rounds</span>
+        <strong data-stat="rounds">${this.stats.totalRounds}</strong>
+      </div>
+      <div class="score-row">
+        <span>Draws</span>
+        <strong data-stat="draws">${this.stats.draws}</strong>
+      </div>
+      <div class="score-row">
+        <span>${this.game.getPlayerName("X")}</span>
+        <strong data-stat="wins-X">${this.stats.wins.X}</strong>
+      </div>
+      <div class="score-row">
+        <span>${this.game.getPlayerName("O")}</span>
+        <strong data-stat="wins-O">${this.stats.wins.O}</strong>
+      </div>
+    `;
+    sidebar.append(lifetimeCard);
 
     const boardPanel = document.createElement("section");
     boardPanel.className = "panel board-panel";
@@ -71,6 +108,7 @@ export class GameScreen {
       button.setAttribute("role", "gridcell");
       button.dataset.index = String(index);
       button.textContent = cellValue || "";
+      button.dataset.symbol = cellValue || "";
       button.addEventListener("click", () => this.handleMove(index, screen));
       this.cells.push(button);
       board.append(button);
@@ -81,12 +119,53 @@ export class GameScreen {
 
     sidebar
       .querySelector('[data-action="restart"]')
-      ?.addEventListener("click", this.onRestart);
+      ?.addEventListener("click", this.onRestartMatch);
     sidebar
       .querySelector('[data-action="menu"]')
       ?.addEventListener("click", this.onOpenMenu);
 
     return wrapper;
+  }
+
+  buildRoundModal() {
+    const overlay = document.createElement("section");
+    overlay.className = "round-modal-overlay is-hidden";
+    overlay.setAttribute("aria-hidden", "true");
+
+    overlay.innerHTML = `
+      <div class="round-modal" role="dialog" aria-modal="true" aria-labelledby="round-modal-title">
+        <p class="eyebrow">Round Complete</p>
+        <h2 id="round-modal-title" data-modal-title></h2>
+        <p class="modal-copy" data-modal-copy></p>
+        <div class="modal-stats">
+          <div>
+            <span>Match Score</span>
+            <strong data-modal-match-score></strong>
+          </div>
+          <div>
+            <span>Lifetime Record</span>
+            <strong data-modal-lifetime></strong>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button class="button button-primary" type="button" data-action="next-round">Next Round</button>
+          <button class="button button-secondary" type="button" data-action="new-match">New Match</button>
+          <button class="button button-ghost" type="button" data-action="modal-menu">Main Menu</button>
+        </div>
+      </div>
+    `;
+
+    overlay
+      .querySelector('[data-action="next-round"]')
+      ?.addEventListener("click", this.onNextRound);
+    overlay
+      .querySelector('[data-action="new-match"]')
+      ?.addEventListener("click", this.onRestartMatch);
+    overlay
+      .querySelector('[data-action="modal-menu"]')
+      ?.addEventListener("click", this.onOpenMenu);
+
+    return overlay;
   }
 
   handleMove(index, screen) {
@@ -100,6 +179,7 @@ export class GameScreen {
       return;
     }
 
+    this.soundManager.playMove(this.game.board[index], this.settings.soundEnabled);
     this.refreshBoard(screen);
     this.completeRoundIfNeeded(screen);
     this.maybePlayAiTurn(screen);
@@ -107,9 +187,12 @@ export class GameScreen {
 
   refreshBoard(screen) {
     this.cells.forEach((cell, index) => {
-      cell.textContent = this.game.board[index] || "";
-      cell.disabled =
-        Boolean(this.game.board[index]) || this.game.isFinished() || this.isAiThinking;
+      const symbol = this.game.board[index] || "";
+
+      cell.textContent = symbol;
+      cell.dataset.symbol = symbol;
+      cell.disabled = Boolean(symbol) || this.game.isFinished() || this.isAiThinking;
+      cell.classList.toggle("cell-filled", Boolean(symbol));
       cell.classList.toggle("winning-cell", this.game.winningLine.includes(index));
     });
 
@@ -126,14 +209,71 @@ export class GameScreen {
     }
   }
 
+  refreshStats(screen) {
+    const totalRounds = screen.querySelector('[data-stat="rounds"]');
+    const draws = screen.querySelector('[data-stat="draws"]');
+    const winsX = screen.querySelector('[data-stat="wins-X"]');
+    const winsO = screen.querySelector('[data-stat="wins-O"]');
+
+    if (totalRounds) {
+      totalRounds.textContent = String(this.stats.totalRounds);
+    }
+
+    if (draws) {
+      draws.textContent = String(this.stats.draws);
+    }
+
+    if (winsX) {
+      winsX.textContent = String(this.stats.wins.X);
+    }
+
+    if (winsO) {
+      winsO.textContent = String(this.stats.wins.O);
+    }
+  }
+
   completeRoundIfNeeded(screen) {
     if ((this.game.winner || this.game.isDraw()) && !this.roundFinished) {
       this.roundFinished = true;
       this.onRoundComplete(this.game.winner);
+
       if (this.game.winner) {
         this.refreshScore(screen, this.game.winner);
+        this.soundManager.playWin(this.settings.soundEnabled);
+      } else {
+        this.soundManager.playDraw(this.settings.soundEnabled);
       }
+
+      this.refreshStats(screen);
+      this.showRoundModal(screen);
     }
+  }
+
+  showRoundModal(screen) {
+    const overlay = screen.querySelector(".round-modal-overlay");
+    if (!overlay) {
+      return;
+    }
+
+    const title = screen.querySelector("[data-modal-title]");
+    const copy = screen.querySelector("[data-modal-copy]");
+    const matchScore = screen.querySelector("[data-modal-match-score]");
+    const lifetime = screen.querySelector("[data-modal-lifetime]");
+
+    if (this.game.winner) {
+      const winnerName = this.game.getPlayerName(this.game.winner);
+      title.textContent = `${winnerName} takes the round`;
+      copy.textContent = `${winnerName} closed the board cleanly. Keep the set going or reset for a fresh match.`;
+    } else {
+      title.textContent = "Draw round";
+      copy.textContent = "No clean finish this time. Run another round or reset the full match.";
+    }
+
+    matchScore.textContent = `${this.score.X} - ${this.score.O}`;
+    lifetime.textContent = `${this.stats.wins.X} wins / ${this.stats.draws} draws / ${this.stats.wins.O} wins`;
+
+    overlay.classList.remove("is-hidden");
+    overlay.setAttribute("aria-hidden", "false");
   }
 
   maybePlayAiTurn(screen) {
@@ -142,8 +282,8 @@ export class GameScreen {
     }
 
     this.isAiThinking = true;
-    this.updateStatusText(screen, "Computer is thinking...");
     this.refreshBoard(screen);
+    this.updateStatusText(screen, "Computer is thinking...");
 
     this.aiMoveTimeout = window.setTimeout(() => {
       const move = this.aiPlayer.chooseMove(this.game, this.settings.aiDifficulty);
@@ -151,6 +291,7 @@ export class GameScreen {
 
       if (move !== null) {
         this.game.makeMove(move);
+        this.soundManager.playMove(this.aiPlayer.symbol, this.settings.soundEnabled);
       }
 
       this.refreshBoard(screen);
@@ -168,7 +309,7 @@ export class GameScreen {
 
   getModeLabel() {
     if (this.settings.opponentType === "computer") {
-      return `Computer · ${this.settings.aiDifficulty}`;
+      return `Computer / ${this.settings.aiDifficulty}`;
     }
 
     return "Local Versus";

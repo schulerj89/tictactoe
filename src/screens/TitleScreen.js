@@ -1,6 +1,7 @@
 export class TitleScreen {
-  constructor({ settings, onStart, onOpenSettings }) {
+  constructor({ settings, stats, onStart, onOpenSettings }) {
     this.settings = settings;
+    this.stats = stats;
     this.onStart = onStart;
     this.onOpenSettings = onOpenSettings;
   }
@@ -8,7 +9,7 @@ export class TitleScreen {
   render() {
     const modeLabel =
       this.settings.opponentType === "computer"
-        ? `Computer · ${this.settings.aiDifficulty}`
+        ? `Computer / ${this.settings.aiDifficulty}`
         : "Local Versus";
 
     const screen = document.createElement("main");
@@ -44,6 +45,30 @@ export class TitleScreen {
           <p class="info-label">Opener</p>
           <p class="info-value">${this.settings.startingPlayer}</p>
         </article>
+      </section>
+      <section class="panel stats-panel">
+        <div>
+          <p class="eyebrow">Lifetime Record</p>
+          <h2>Saved Stats</h2>
+        </div>
+        <div class="stats-grid">
+          <article>
+            <p class="info-label">Rounds</p>
+            <p class="info-value">${this.stats.totalRounds}</p>
+          </article>
+          <article>
+            <p class="info-label">${this.settings.playerXName} Wins</p>
+            <p class="info-value">${this.stats.wins.X}</p>
+          </article>
+          <article>
+            <p class="info-label">${this.settings.playerOName} Wins</p>
+            <p class="info-value">${this.stats.wins.O}</p>
+          </article>
+          <article>
+            <p class="info-label">Draws</p>
+            <p class="info-value">${this.stats.draws}</p>
+          </article>
+        </div>
       </section>
     `;
 

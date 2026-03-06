@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS = {
   showScoreboard: true,
   opponentType: "computer",
   aiDifficulty: "medium",
+  soundEnabled: true,
 };
 
 export class Settings {

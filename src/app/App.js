@@ -1,6 +1,8 @@
 import { Game } from "../core/Game.js";
 import { Settings } from "../core/Settings.js";
 import { AIPlayer } from "../core/AIPlayer.js";
+import { SoundManager } from "../core/SoundManager.js";
+import { StatsStore } from "../core/StatsStore.js";
 import { GameScreen } from "../screens/GameScreen.js";
 import { SettingsScreen } from "../screens/SettingsScreen.js";
 import { TitleScreen } from "../screens/TitleScreen.js";
@@ -11,10 +13,13 @@ export class App {
     this.settings = new Settings();
     this.game = new Game();
     this.aiPlayer = new AIPlayer("O");
-    this.score = {
+    this.soundManager = new SoundManager();
+    this.statsStore = new StatsStore();
+    this.matchScore = {
       X: 0,
       O: 0,
     };
+    this.lifetimeStats = this.statsStore.getState();
     this.activeScreen = null;
   }
 
@@ -26,6 +31,7 @@ export class App {
     this.renderScreen(
       new TitleScreen({
         settings: this.settings.getState(),
+        stats: this.lifetimeStats,
         onStart: () => this.startGame(),
         onOpenSettings: () => this.showSettingsScreen(),
       }),
@@ -45,21 +51,35 @@ export class App {
     );
   }
 
-  startGame() {
-    this.game.start(this.settings.getState());
+  startGame({ resetMatchScore = true } = {}) {
+    const settings = this.settings.getState();
+
+    if (resetMatchScore) {
+      this.matchScore.X = 0;
+      this.matchScore.O = 0;
+    }
+
+    this.game.start(settings);
 
     this.renderScreen(
       new GameScreen({
         game: this.game,
-        settings: this.settings.getState(),
+        settings,
         aiPlayer: this.aiPlayer,
-        score: this.score,
+        soundManager: this.soundManager,
+        score: this.matchScore,
+        stats: this.lifetimeStats,
         onRoundComplete: (winner) => {
+          const latestStats = this.statsStore.recordResult(winner);
+
           if (winner) {
-            this.score[winner] += 1;
+            this.matchScore[winner] += 1;
           }
+
+          Object.assign(this.lifetimeStats, latestStats);
         },
-        onRestart: () => this.startGame(),
+        onNextRound: () => this.startGame({ resetMatchScore: false }),
+        onRestartMatch: () => this.startGame({ resetMatchScore: true }),
         onOpenMenu: () => this.showTitleScreen(),
       }),
     );

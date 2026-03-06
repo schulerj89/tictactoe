@@ -64,6 +64,14 @@ export class SettingsScreen {
             />
             <span>Show scoreboard</span>
           </label>
+          <label class="field checkbox-field">
+            <input
+              type="checkbox"
+              name="soundEnabled"
+              ${this.settings.soundEnabled ? "checked" : ""}
+            />
+            <span>Enable sound effects</span>
+          </label>
           <button class="button button-primary" type="submit">Save Settings</button>
         </form>
       </section>
@@ -102,6 +110,7 @@ export class SettingsScreen {
         showScoreboard: formData.get("showScoreboard") === "on",
         opponentType,
         aiDifficulty: String(formData.get("aiDifficulty") || "medium"),
+        soundEnabled: formData.get("soundEnabled") === "on",
       });
     });
 
