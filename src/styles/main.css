@@ -225,6 +225,10 @@ h2 {
   background: var(--panel-strong);
 }
 
+.field input[type="range"] {
+  padding: 0;
+}
+
 .checkbox-field {
   display: flex;
   align-items: center;
@@ -234,6 +238,20 @@ h2 {
 .checkbox-field input {
   width: 18px;
   height: 18px;
+}
+
+.range-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.range-field output {
+  min-width: 3ch;
+  font-weight: 700;
+  color: var(--secondary);
+  text-align: right;
 }
 
 .game-layout {

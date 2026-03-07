@@ -28,6 +28,8 @@ test("Settings migrates the legacy soundEnabled flag", () => {
   assert.equal(settings.musicEnabled, false);
   assert.equal(settings.soundEffectsEnabled, false);
   assert.equal(settings.musicTrackId, "ode-to-joy");
+  assert.equal(settings.musicVolume, 18);
+  assert.equal(settings.soundEffectsVolume, 45);
 });
 
 test("Settings persists separate music and sound effect preferences", () => {
@@ -39,6 +41,8 @@ test("Settings persists separate music and sound effect preferences", () => {
     musicEnabled: false,
     soundEffectsEnabled: true,
     musicTrackId: "fur-elise",
+    musicVolume: 12,
+    soundEffectsVolume: 30,
   });
 
   assert.deepEqual(JSON.parse(storage.getItem("tictactoe-settings")), {
@@ -53,5 +57,18 @@ test("Settings persists separate music and sound effect preferences", () => {
     musicEnabled: false,
     soundEffectsEnabled: true,
     musicTrackId: "fur-elise",
+    musicVolume: 12,
+    soundEffectsVolume: 30,
   });
+});
+
+test("Settings clamps invalid volume values during load", () => {
+  global.window = {
+    localStorage: createStorage(JSON.stringify({ musicVolume: 200, soundEffectsVolume: -10 })),
+  };
+
+  const settings = new Settings().getState();
+
+  assert.equal(settings.musicVolume, 100);
+  assert.equal(settings.soundEffectsVolume, 0);
 });

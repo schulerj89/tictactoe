@@ -64,3 +64,36 @@ test("SoundManager prefers document.baseURI when deriving the deployed base path
     globalThis.document = originalDocument;
   }
 });
+
+test("SoundManager applies configured volume levels", () => {
+  const originalAudio = globalThis.Audio;
+  globalThis.Audio = class {
+    constructor(source) {
+      this.src = source;
+      this.volume = 1;
+      this.loop = false;
+      this.preload = "none";
+      this.dataset = {};
+      this.currentTime = 0;
+      this.paused = true;
+    }
+  };
+
+  const manager = new SoundManager({ baseUrl: "/" });
+
+  try {
+    manager.applySettings({
+      musicEnabled: false,
+      soundEffectsEnabled: true,
+      musicVolume: 12,
+      soundEffectsVolume: 30,
+    });
+
+    const audio = manager.ensureMusicAudio("/audio/fur-elise-8bit.wav");
+
+    assert.equal(audio.volume, 0.12);
+    assert.equal(manager.soundEffectsVolume, 0.3);
+  } finally {
+    globalThis.Audio = originalAudio;
+  }
+});

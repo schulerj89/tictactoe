@@ -106,6 +106,20 @@ export class SettingsScreen {
             />
             <span>Enable music</span>
           </label>
+          <label class="field volume-field">
+            <span>Music Volume</span>
+            <div class="range-field">
+              <input
+                type="range"
+                name="musicVolume"
+                min="0"
+                max="100"
+                step="1"
+                value="${Number(this.settings.musicVolume ?? 18)}"
+              />
+              <output data-field="music-volume">${Number(this.settings.musicVolume ?? 18)}%</output>
+            </div>
+          </label>
           <label class="field checkbox-field">
             <input
               type="checkbox"
@@ -113,6 +127,20 @@ export class SettingsScreen {
               ${this.settings.soundEffectsEnabled ? "checked" : ""}
             />
             <span>Enable sound effects</span>
+          </label>
+          <label class="field volume-field">
+            <span>Sound Effects Volume</span>
+            <div class="range-field">
+              <input
+                type="range"
+                name="soundEffectsVolume"
+                min="0"
+                max="100"
+                step="1"
+                value="${Number(this.settings.soundEffectsVolume ?? 45)}"
+              />
+              <output data-field="sound-effects-volume">${Number(this.settings.soundEffectsVolume ?? 45)}%</output>
+            </div>
           </label>
           <button class="button button-primary" type="submit">Save Settings</button>
         </form>
@@ -125,6 +153,10 @@ export class SettingsScreen {
     const playerXInput = form?.querySelector('[name="playerXName"]');
     const playerOInput = form?.querySelector('[name="playerOName"]');
     const aiFields = form?.querySelectorAll(".ai-field");
+    const musicVolumeInput = form?.querySelector('[name="musicVolume"]');
+    const soundEffectsVolumeInput = form?.querySelector('[name="soundEffectsVolume"]');
+    const musicVolumeOutput = form?.querySelector('[data-field="music-volume"]');
+    const soundEffectsVolumeOutput = form?.querySelector('[data-field="sound-effects-volume"]');
 
     if (playerXInput instanceof HTMLInputElement) {
       playerXInput.value = this.settings.playerXName;
@@ -167,6 +199,22 @@ export class SettingsScreen {
     aiSymbolSelect?.addEventListener("change", syncComputerFields);
     syncComputerFields();
 
+    const syncVolumeLabel = (input, output) => {
+      if (!(input instanceof HTMLInputElement) || !(output instanceof HTMLOutputElement)) {
+        return;
+      }
+
+      output.value = `${input.value}%`;
+      output.textContent = output.value;
+    };
+
+    syncVolumeLabel(musicVolumeInput, musicVolumeOutput);
+    syncVolumeLabel(soundEffectsVolumeInput, soundEffectsVolumeOutput);
+    musicVolumeInput?.addEventListener("input", () => syncVolumeLabel(musicVolumeInput, musicVolumeOutput));
+    soundEffectsVolumeInput?.addEventListener("input", () =>
+      syncVolumeLabel(soundEffectsVolumeInput, soundEffectsVolumeOutput),
+    );
+
     form?.addEventListener("submit", (event) => {
       event.preventDefault();
       const formData = new FormData(form);
@@ -194,6 +242,8 @@ export class SettingsScreen {
         musicTrackId: String(formData.get("musicTrackId") || "ode-to-joy"),
         musicEnabled: formData.get("musicEnabled") === "on",
         soundEffectsEnabled: formData.get("soundEffectsEnabled") === "on",
+        musicVolume: Number(formData.get("musicVolume") || 18),
+        soundEffectsVolume: Number(formData.get("soundEffectsVolume") || 45),
       });
     });
 

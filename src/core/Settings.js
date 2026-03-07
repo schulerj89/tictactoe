@@ -12,7 +12,19 @@ const DEFAULT_SETTINGS = {
   musicEnabled: true,
   soundEffectsEnabled: true,
   musicTrackId: "ode-to-joy",
+  musicVolume: 18,
+  soundEffectsVolume: 45,
 };
+
+function normalizeVolume(value, fallback) {
+  const normalizedValue = Number(value);
+
+  if (!Number.isFinite(normalizedValue)) {
+    return fallback;
+  }
+
+  return Math.min(100, Math.max(0, Math.round(normalizedValue)));
+}
 
 export class Settings {
   constructor() {
@@ -46,6 +58,11 @@ export class Settings {
         ...parsed,
         musicEnabled,
         soundEffectsEnabled,
+        musicVolume: normalizeVolume(parsed.musicVolume, DEFAULT_SETTINGS.musicVolume),
+        soundEffectsVolume: normalizeVolume(
+          parsed.soundEffectsVolume,
+          DEFAULT_SETTINGS.soundEffectsVolume,
+        ),
       };
     } catch {
       return { ...DEFAULT_SETTINGS };

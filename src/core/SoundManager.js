@@ -4,6 +4,8 @@ export class SoundManager {
     this.musicAudio = null;
     this.musicEnabled = true;
     this.soundEffectsEnabled = true;
+    this.musicVolume = 0.18;
+    this.soundEffectsVolume = 0.45;
     this.currentTrackId = "ode-to-joy";
     this.baseUrl = this.resolveBaseUrl(baseUrl);
     this.trackMap = {
@@ -78,15 +80,37 @@ export class SoundManager {
     return this.trackMap[trackId] || this.trackMap[this.currentTrackId] || this.trackMap["ode-to-joy"];
   }
 
-  applySettings({ musicEnabled = true, soundEffectsEnabled = true, musicTrackId = "ode-to-joy" } = {}) {
+  normalizeVolume(value, fallback) {
+    const normalizedValue = Number(value);
+
+    if (!Number.isFinite(normalizedValue)) {
+      return fallback;
+    }
+
+    return Math.min(1, Math.max(0, normalizedValue / 100));
+  }
+
+  applySettings({
+    musicEnabled = true,
+    soundEffectsEnabled = true,
+    musicTrackId = "ode-to-joy",
+    musicVolume = 18,
+    soundEffectsVolume = 45,
+  } = {}) {
     this.musicEnabled = musicEnabled;
     this.soundEffectsEnabled = soundEffectsEnabled;
+    this.musicVolume = this.normalizeVolume(musicVolume, this.musicVolume);
+    this.soundEffectsVolume = this.normalizeVolume(soundEffectsVolume, this.soundEffectsVolume);
 
     if (this.currentTrackId !== musicTrackId) {
       this.currentTrackId = this.trackMap[musicTrackId] ? musicTrackId : "ode-to-joy";
       this.stopMusic();
     } else {
       this.currentTrackId = this.trackMap[musicTrackId] ? musicTrackId : this.currentTrackId;
+    }
+
+    if (this.musicAudio) {
+      this.musicAudio.volume = this.musicVolume;
     }
 
     if (this.musicEnabled) {
@@ -131,12 +155,13 @@ export class SoundManager {
       const startAt = context.currentTime + delay;
       const oscillator = context.createOscillator();
       const gain = context.createGain();
+      const adjustedGain = Math.max(0.0001, gainValue * this.soundEffectsVolume);
 
       oscillator.type = type;
       oscillator.frequency.setValueAtTime(frequency, startAt);
 
       gain.gain.setValueAtTime(0.0001, startAt);
-      gain.gain.exponentialRampToValueAtTime(gainValue, startAt + 0.01);
+      gain.gain.exponentialRampToValueAtTime(adjustedGain, startAt + 0.01);
       gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
 
       oscillator.connect(gain);
@@ -202,7 +227,7 @@ export class SoundManager {
     if (!this.musicAudio) {
       this.musicAudio = new Audio(source);
       this.musicAudio.loop = true;
-      this.musicAudio.volume = 0.32;
+      this.musicAudio.volume = this.musicVolume;
       this.musicAudio.preload = "auto";
       return this.musicAudio;
     }
