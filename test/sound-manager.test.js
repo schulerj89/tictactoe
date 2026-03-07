@@ -97,3 +97,21 @@ test("SoundManager applies configured volume levels", () => {
     globalThis.Audio = originalAudio;
   }
 });
+
+test("SoundManager exposes all bundled music tracks", () => {
+  const manager = new SoundManager({ baseUrl: "/" });
+  const tracks = manager.getAvailableTracks();
+
+  assert.deepEqual(
+    tracks.map((track) => track.id),
+    [
+      "ode-to-joy",
+      "fur-elise",
+      "minuet-in-g",
+      "twinkle-twinkle",
+      "auld-lang-syne",
+      "turkish-march",
+    ],
+  );
+  assert.equal(manager.getTrack("turkish-march").source, "/audio/turkish-march-8bit.wav");
+});

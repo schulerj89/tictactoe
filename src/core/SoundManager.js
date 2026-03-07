@@ -27,6 +27,24 @@ export class SoundManager {
         source: this.resolveTrackSource("minuet-in-g-8bit.wav"),
         credit: "Christian Petzold / J.S. Bach notebook",
       },
+      "twinkle-twinkle": {
+        id: "twinkle-twinkle",
+        label: "Twinkle, Twinkle",
+        source: this.resolveTrackSource("twinkle-twinkle-8bit.wav"),
+        credit: "Traditional",
+      },
+      "auld-lang-syne": {
+        id: "auld-lang-syne",
+        label: "Auld Lang Syne",
+        source: this.resolveTrackSource("auld-lang-syne-8bit.wav"),
+        credit: "Robert Burns / traditional",
+      },
+      "turkish-march": {
+        id: "turkish-march",
+        label: "Turkish March",
+        source: this.resolveTrackSource("turkish-march-8bit.wav"),
+        credit: "Wolfgang Amadeus Mozart",
+      },
     };
   }
 
