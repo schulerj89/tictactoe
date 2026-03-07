@@ -38,6 +38,11 @@ export class App {
         tracks: this.soundManager.getAvailableTracks(),
         onStart: () => this.startGame(),
         onOpenSettings: () => this.showSettingsScreen(),
+        onResetStats: () => {
+          const latestStats = this.statsStore.reset();
+          Object.assign(this.lifetimeStats, latestStats);
+          this.showTitleScreen();
+        },
       }),
     );
   }

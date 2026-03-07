@@ -57,6 +57,12 @@ export class StatsStore {
     return this.getState();
   }
 
+  reset() {
+    this.state = structuredClone(DEFAULT_STATS);
+    this.save();
+    return this.getState();
+  }
+
   getState() {
     return structuredClone(this.state);
   }

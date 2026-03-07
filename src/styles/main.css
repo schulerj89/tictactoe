@@ -168,6 +168,13 @@ h2 {
   gap: 20px;
 }
 
+.stats-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .stats-grid {
   display: grid;
   gap: 16px;
@@ -482,6 +489,11 @@ h2 {
 
   .hero-title {
     font-size: clamp(2.8rem, 14vw, 4rem);
+  }
+
+  .stats-panel-header {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .stats-grid,

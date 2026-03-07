@@ -1,10 +1,11 @@
 export class TitleScreen {
-  constructor({ settings, stats, tracks, onStart, onOpenSettings }) {
+  constructor({ settings, stats, tracks, onStart, onOpenSettings, onResetStats }) {
     this.settings = settings;
     this.stats = stats;
     this.tracks = tracks;
     this.onStart = onStart;
     this.onOpenSettings = onOpenSettings;
+    this.onResetStats = onResetStats;
   }
 
   render() {
@@ -66,9 +67,12 @@ export class TitleScreen {
         </article>
       </section>
       <section class="panel stats-panel">
-        <div>
-          <p class="eyebrow">Lifetime Record</p>
-          <h2>Saved Stats</h2>
+        <div class="stats-panel-header">
+          <div>
+            <p class="eyebrow">Lifetime Record</p>
+            <h2>Saved Stats</h2>
+          </div>
+          <button class="button button-ghost" type="button" data-action="reset-stats">Clear Record</button>
         </div>
         <div class="stats-grid">
           <article>
@@ -109,6 +113,9 @@ export class TitleScreen {
     screen
       .querySelector('[data-action="settings"]')
       ?.addEventListener("click", this.onOpenSettings);
+    screen
+      .querySelector('[data-action="reset-stats"]')
+      ?.addEventListener("click", this.onResetStats);
 
     return screen;
   }
