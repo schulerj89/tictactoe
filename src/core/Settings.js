@@ -9,7 +9,9 @@ const DEFAULT_SETTINGS = {
   aiSymbol: "O",
   aiDifficulty: "medium",
   bestOf: 3,
-  soundEnabled: true,
+  musicEnabled: true,
+  soundEffectsEnabled: true,
+  musicTrackId: "ode-to-joy",
 };
 
 export class Settings {
@@ -24,9 +26,26 @@ export class Settings {
         return { ...DEFAULT_SETTINGS };
       }
 
+      const parsed = JSON.parse(saved);
+      const hasLegacySoundFlag = typeof parsed.soundEnabled === "boolean";
+      const musicEnabled =
+        typeof parsed.musicEnabled === "boolean"
+          ? parsed.musicEnabled
+          : hasLegacySoundFlag
+            ? parsed.soundEnabled
+            : DEFAULT_SETTINGS.musicEnabled;
+      const soundEffectsEnabled =
+        typeof parsed.soundEffectsEnabled === "boolean"
+          ? parsed.soundEffectsEnabled
+          : hasLegacySoundFlag
+            ? parsed.soundEnabled
+            : DEFAULT_SETTINGS.soundEffectsEnabled;
+
       return {
         ...DEFAULT_SETTINGS,
-        ...JSON.parse(saved),
+        ...parsed,
+        musicEnabled,
+        soundEffectsEnabled,
       };
     } catch {
       return { ...DEFAULT_SETTINGS };

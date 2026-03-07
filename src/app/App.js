@@ -29,11 +29,13 @@ export class App {
 
   showTitleScreen() {
     const settings = this.resolveSettings();
+    this.soundManager.applySettings(settings);
 
     this.renderScreen(
       new TitleScreen({
         settings,
         stats: this.lifetimeStats,
+        tracks: this.soundManager.getAvailableTracks(),
         onStart: () => this.startGame(),
         onOpenSettings: () => this.showSettingsScreen(),
       }),
@@ -41,11 +43,16 @@ export class App {
   }
 
   showSettingsScreen() {
+    const settings = this.settings.getState();
+    this.soundManager.applySettings(settings);
+
     this.renderScreen(
       new SettingsScreen({
-        settings: this.settings.getState(),
+        settings,
+        tracks: this.soundManager.getAvailableTracks(),
         onSave: (updates) => {
           this.settings.update(updates);
+          this.soundManager.applySettings(this.settings.getState());
           this.showTitleScreen();
         },
         onBack: () => this.showTitleScreen(),
@@ -55,6 +62,7 @@ export class App {
 
   startGame({ resetMatchScore = true } = {}) {
     const settings = this.resolveSettings();
+    this.soundManager.applySettings(settings);
 
     if (resetMatchScore) {
       this.matchScore.X = 0;

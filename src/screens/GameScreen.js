@@ -197,7 +197,7 @@ export class GameScreen {
       return;
     }
 
-      this.soundManager.playMove(this.game.board[index], this.settings.soundEnabled);
+    this.soundManager.playMove(this.game.board[index]);
     this.refreshBoard(screen);
     this.completeRoundIfNeeded(screen);
     this.maybePlayAiTurn(screen);
@@ -258,9 +258,9 @@ export class GameScreen {
 
       if (this.game.winner) {
         this.refreshScore(screen, this.game.winner);
-        this.soundManager.playWin(this.settings.soundEnabled);
+        this.soundManager.playWin();
       } else {
-        this.soundManager.playDraw(this.settings.soundEnabled);
+        this.soundManager.playDraw();
       }
 
       this.refreshStats(screen);
@@ -318,7 +318,7 @@ export class GameScreen {
 
       if (move !== null) {
         this.game.makeMove(move);
-        this.soundManager.playMove(this.aiPlayer.symbol, this.settings.soundEnabled);
+        this.soundManager.playMove(this.aiPlayer.symbol);
       }
 
       this.refreshBoard(screen);

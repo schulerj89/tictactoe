@@ -1,6 +1,7 @@
 export class SettingsScreen {
-  constructor({ settings, onSave, onBack }) {
+  constructor({ settings, tracks, onSave, onBack }) {
     this.settings = settings;
+    this.tracks = tracks;
     this.onSave = onSave;
     this.onBack = onBack;
   }
@@ -13,6 +14,12 @@ export class SettingsScreen {
     const aiSymbol = this.settings.aiSymbol || "O";
     const isXControlledByAi = isComputerOpponent && aiSymbol === "X";
     const isOControlledByAi = isComputerOpponent && aiSymbol === "O";
+    const trackOptions = this.tracks
+      .map(
+        (track) =>
+          `<option value="${track.id}" ${this.settings.musicTrackId === track.id ? "selected" : ""}>${track.label}</option>`,
+      )
+      .join("");
 
     screen.innerHTML = `
       <section class="panel settings-panel">
@@ -85,11 +92,25 @@ export class SettingsScreen {
             />
             <span>Show scoreboard</span>
           </label>
+          <label class="field">
+            <span>Background Music</span>
+            <select name="musicTrackId">
+              ${trackOptions}
+            </select>
+          </label>
           <label class="field checkbox-field">
             <input
               type="checkbox"
-              name="soundEnabled"
-              ${this.settings.soundEnabled ? "checked" : ""}
+              name="musicEnabled"
+              ${this.settings.musicEnabled ? "checked" : ""}
+            />
+            <span>Enable music</span>
+          </label>
+          <label class="field checkbox-field">
+            <input
+              type="checkbox"
+              name="soundEffectsEnabled"
+              ${this.settings.soundEffectsEnabled ? "checked" : ""}
             />
             <span>Enable sound effects</span>
           </label>
@@ -170,7 +191,9 @@ export class SettingsScreen {
         aiSymbol: selectedAiSymbol,
         aiDifficulty: String(formData.get("aiDifficulty") || "medium"),
         bestOf: Number(formData.get("bestOf") || 3),
-        soundEnabled: formData.get("soundEnabled") === "on",
+        musicTrackId: String(formData.get("musicTrackId") || "ode-to-joy"),
+        musicEnabled: formData.get("musicEnabled") === "on",
+        soundEffectsEnabled: formData.get("soundEffectsEnabled") === "on",
       });
     });
 

@@ -1,10 +1,61 @@
 export class SoundManager {
   constructor() {
     this.audioContext = null;
+    this.musicAudio = null;
+    this.musicEnabled = true;
+    this.soundEffectsEnabled = true;
+    this.currentTrackId = "ode-to-joy";
+    this.trackMap = {
+      "ode-to-joy": {
+        id: "ode-to-joy",
+        label: "Ode to Joy",
+        source: "/audio/ode-to-joy-8bit.wav",
+        credit: "Ludwig van Beethoven",
+      },
+      "fur-elise": {
+        id: "fur-elise",
+        label: "Fur Elise",
+        source: "/audio/fur-elise-8bit.wav",
+        credit: "Ludwig van Beethoven",
+      },
+      "minuet-in-g": {
+        id: "minuet-in-g",
+        label: "Minuet in G",
+        source: "/audio/minuet-in-g-8bit.wav",
+        credit: "Christian Petzold / J.S. Bach notebook",
+      },
+    };
   }
 
-  playMove(symbol, enabled) {
-    if (!enabled) {
+  getAvailableTracks() {
+    return Object.values(this.trackMap).map((track) => ({ ...track }));
+  }
+
+  getTrack(trackId) {
+    return this.trackMap[trackId] || this.trackMap[this.currentTrackId] || this.trackMap["ode-to-joy"];
+  }
+
+  applySettings({ musicEnabled = true, soundEffectsEnabled = true, musicTrackId = "ode-to-joy" } = {}) {
+    this.musicEnabled = musicEnabled;
+    this.soundEffectsEnabled = soundEffectsEnabled;
+
+    if (this.currentTrackId !== musicTrackId) {
+      this.currentTrackId = this.trackMap[musicTrackId] ? musicTrackId : "ode-to-joy";
+      this.stopMusic();
+    } else {
+      this.currentTrackId = this.trackMap[musicTrackId] ? musicTrackId : this.currentTrackId;
+    }
+
+    if (this.musicEnabled) {
+      this.playMusic();
+      return;
+    }
+
+    this.stopMusic();
+  }
+
+  playMove(symbol) {
+    if (!this.soundEffectsEnabled) {
       return;
     }
 
@@ -12,8 +63,8 @@ export class SoundManager {
     this.playTone(frequency, 0.07, "triangle", 0.03);
   }
 
-  playWin(enabled) {
-    if (!enabled) {
+  playWin() {
+    if (!this.soundEffectsEnabled) {
       return;
     }
 
@@ -22,8 +73,8 @@ export class SoundManager {
     this.playTone(783.99, 0.12, "sine", 0.035, 0.16);
   }
 
-  playDraw(enabled) {
-    if (!enabled) {
+  playDraw() {
+    if (!this.soundEffectsEnabled) {
       return;
     }
 
@@ -71,5 +122,48 @@ export class SoundManager {
     }
 
     return this.audioContext;
+  }
+
+  playMusic() {
+    const track = this.getTrack(this.currentTrackId);
+    const audio = this.ensureMusicAudio(track.source);
+
+    if (!audio.paused && audio.dataset.trackId === track.id) {
+      return;
+    }
+
+    audio.dataset.trackId = track.id;
+    if (audio.src !== track.source && audio.src !== `${window.location.origin}${track.source}`) {
+      audio.src = track.source;
+    }
+
+    audio.currentTime = 0;
+    const playback = audio.play();
+    if (playback?.catch) {
+      playback.catch(() => {
+        // Ignore autoplay rejections until the next user gesture.
+      });
+    }
+  }
+
+  stopMusic() {
+    if (!this.musicAudio) {
+      return;
+    }
+
+    this.musicAudio.pause();
+    this.musicAudio.currentTime = 0;
+  }
+
+  ensureMusicAudio(source) {
+    if (!this.musicAudio) {
+      this.musicAudio = new Audio(source);
+      this.musicAudio.loop = true;
+      this.musicAudio.volume = 0.32;
+      this.musicAudio.preload = "auto";
+      return this.musicAudio;
+    }
+
+    return this.musicAudio;
   }
 }

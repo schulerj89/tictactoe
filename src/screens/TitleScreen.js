@@ -1,7 +1,8 @@
 export class TitleScreen {
-  constructor({ settings, stats, onStart, onOpenSettings }) {
+  constructor({ settings, stats, tracks, onStart, onOpenSettings }) {
     this.settings = settings;
     this.stats = stats;
+    this.tracks = tracks;
     this.onStart = onStart;
     this.onOpenSettings = onOpenSettings;
   }
@@ -13,6 +14,10 @@ export class TitleScreen {
         : "Local Versus";
     const matchLabel =
       Number(this.settings.bestOf) === 1 ? "Single Round" : `Best of ${this.settings.bestOf}`;
+    const selectedTrack =
+      this.tracks.find((track) => track.id === this.settings.musicTrackId) || this.tracks[0];
+    const musicLabel = this.settings.musicEnabled ? selectedTrack?.label || "On" : "Off";
+    const soundEffectsLabel = this.settings.soundEffectsEnabled ? "On" : "Off";
 
     const screen = document.createElement("main");
     screen.className = "screen shell";
@@ -51,6 +56,14 @@ export class TitleScreen {
           <p class="info-label">Match</p>
           <p class="info-value" data-field="match"></p>
         </article>
+        <article>
+          <p class="info-label">Music</p>
+          <p class="info-value" data-field="music"></p>
+        </article>
+        <article>
+          <p class="info-label">SFX</p>
+          <p class="info-value" data-field="sfx"></p>
+        </article>
       </section>
       <section class="panel stats-panel">
         <div>
@@ -83,6 +96,8 @@ export class TitleScreen {
     screen.querySelector('[data-field="mode"]').textContent = modeLabel;
     screen.querySelector('[data-field="opener"]').textContent = this.settings.startingPlayer;
     screen.querySelector('[data-field="match"]').textContent = matchLabel;
+    screen.querySelector('[data-field="music"]').textContent = musicLabel;
+    screen.querySelector('[data-field="sfx"]').textContent = soundEffectsLabel;
     screen.querySelector('[data-stat="rounds"]').textContent = String(this.stats.totalRounds);
     screen.querySelector('[data-stat="wins-x"]').textContent = String(this.stats.wins.X);
     screen.querySelector('[data-stat="wins-o"]').textContent = String(this.stats.wins.O);
