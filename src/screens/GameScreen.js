@@ -43,15 +43,22 @@ export class GameScreen {
     sidebar.className = "panel side-panel";
     sidebar.innerHTML = `
       <p class="eyebrow">Live Match</p>
-      <h2>${this.game.getPlayerName("X")} vs ${this.game.getPlayerName("O")}</h2>
-      <p class="mode-pill">${this.getModeLabel()}</p>
-      <p class="match-target">First to ${this.getWinsNeeded()} wins</p>
-      <p class="status-text">${this.game.getStatus()}</p>
+      <h2 data-field="matchup"></h2>
+      <p class="mode-pill" data-field="mode"></p>
+      <p class="match-target" data-field="target"></p>
+      <p class="status-text" data-field="status"></p>
       <div class="action-stack">
         <button class="button button-primary" type="button" data-action="restart">New Match</button>
         <button class="button button-secondary" type="button" data-action="menu">Main Menu</button>
       </div>
     `;
+
+    sidebar.querySelector('[data-field="matchup"]').textContent =
+      `${this.game.getPlayerName("X")} vs ${this.game.getPlayerName("O")}`;
+    sidebar.querySelector('[data-field="mode"]').textContent = this.getModeLabel();
+    sidebar.querySelector('[data-field="target"]').textContent =
+      `First to ${this.getWinsNeeded()} wins`;
+    sidebar.querySelector('[data-field="status"]').textContent = this.game.getStatus();
 
     if (this.settings.showScoreboard) {
       const scoreCard = document.createElement("div");
@@ -59,14 +66,16 @@ export class GameScreen {
       scoreCard.innerHTML = `
         <p class="info-label">Match Score</p>
         <div class="score-row">
-          <span>${this.game.getPlayerName("X")}</span>
+          <span data-score-label="X"></span>
           <strong data-score="X">${this.score.X}</strong>
         </div>
         <div class="score-row">
-          <span>${this.game.getPlayerName("O")}</span>
+          <span data-score-label="O"></span>
           <strong data-score="O">${this.score.O}</strong>
         </div>
       `;
+      scoreCard.querySelector('[data-score-label="X"]').textContent = this.game.getPlayerName("X");
+      scoreCard.querySelector('[data-score-label="O"]').textContent = this.game.getPlayerName("O");
       sidebar.append(scoreCard);
     }
 
@@ -83,11 +92,11 @@ export class GameScreen {
         <strong data-stat="draws">${this.stats.draws}</strong>
       </div>
       <div class="score-row">
-        <span>${this.game.getPlayerName("X")}</span>
+        <span>X Wins</span>
         <strong data-stat="wins-X">${this.stats.wins.X}</strong>
       </div>
       <div class="score-row">
-        <span>${this.game.getPlayerName("O")}</span>
+        <span>O Wins</span>
         <strong data-stat="wins-O">${this.stats.wins.O}</strong>
       </div>
     `;
@@ -285,7 +294,7 @@ export class GameScreen {
     }
 
     matchScore.textContent = `${this.score.X} - ${this.score.O}`;
-    lifetime.textContent = `${this.stats.wins.X} wins / ${this.stats.draws} draws / ${this.stats.wins.O} wins`;
+    lifetime.textContent = `X: ${this.stats.wins.X} / Draws: ${this.stats.draws} / O: ${this.stats.wins.O}`;
     if (nextRoundButton) {
       nextRoundButton.textContent = this.matchWinner ? "Play New Match" : "Next Round";
     }

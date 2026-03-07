@@ -36,7 +36,6 @@ export class SettingsScreen {
             <input
               name="playerXName"
               maxlength="14"
-              value="${this.settings.playerXName}"
               ${isXControlledByAi ? "disabled" : ""}
             />
           </label>
@@ -45,7 +44,6 @@ export class SettingsScreen {
             <input
               name="playerOName"
               maxlength="14"
-              value="${this.settings.playerOName}"
               ${isOControlledByAi ? "disabled" : ""}
             />
           </label>
@@ -106,6 +104,14 @@ export class SettingsScreen {
     const playerXInput = form?.querySelector('[name="playerXName"]');
     const playerOInput = form?.querySelector('[name="playerOName"]');
     const aiFields = form?.querySelectorAll(".ai-field");
+
+    if (playerXInput instanceof HTMLInputElement) {
+      playerXInput.value = this.settings.playerXName;
+    }
+
+    if (playerOInput instanceof HTMLInputElement) {
+      playerOInput.value = this.settings.playerOName;
+    }
 
     const syncComputerFields = () => {
       if (!opponentSelect || !form) {

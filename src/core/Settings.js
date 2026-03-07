@@ -39,7 +39,11 @@ export class Settings {
       ...updates,
     };
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+    } catch {
+      // Ignore persistence failures and keep the in-memory state usable.
+    }
   }
 
   getState() {

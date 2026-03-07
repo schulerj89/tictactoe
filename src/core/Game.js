@@ -48,6 +48,10 @@ export class Game {
   }
 
   makeMove(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= this.board.length) {
+      return false;
+    }
+
     if (this.board[index] || this.isFinished()) {
       return false;
     }

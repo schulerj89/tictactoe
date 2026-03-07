@@ -51,3 +51,18 @@ test("Game exposes available moves", () => {
 
   assert.deepEqual(game.getAvailableMoves(), [1, 2, 3, 5, 6, 7, 8]);
 });
+
+test("Game rejects out-of-range move indexes", () => {
+  const game = new Game();
+  game.start({
+    playerXName: "Nova",
+    playerOName: "CPU",
+    startingPlayer: "X",
+  });
+
+  assert.equal(game.makeMove(-1), false);
+  assert.equal(game.makeMove(9), false);
+  assert.equal(game.makeMove(1.5), false);
+  assert.deepEqual(game.board, Array(9).fill(null));
+  assert.equal(game.moveCount, 0);
+});

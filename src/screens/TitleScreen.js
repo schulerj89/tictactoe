@@ -26,30 +26,30 @@ export class TitleScreen {
           that can grow with the project.
         </p>
         <div class="hero-actions">
-          <button class="button button-primary" data-action="start">Start Game</button>
-          <button class="button button-secondary" data-action="settings">Settings</button>
+          <button class="button button-primary" type="button" data-action="start">Start Game</button>
+          <button class="button button-secondary" type="button" data-action="settings">Settings</button>
         </div>
       </section>
       <section class="panel info-grid">
         <article>
           <p class="info-label">Player X</p>
-          <p class="info-value">${this.settings.playerXName}</p>
+          <p class="info-value" data-field="player-x"></p>
         </article>
         <article>
           <p class="info-label">Player O</p>
-          <p class="info-value">${this.settings.playerOName}</p>
+          <p class="info-value" data-field="player-o"></p>
         </article>
         <article>
           <p class="info-label">Mode</p>
-          <p class="info-value">${modeLabel}</p>
+          <p class="info-value" data-field="mode"></p>
         </article>
         <article>
           <p class="info-label">Opener</p>
-          <p class="info-value">${this.settings.startingPlayer}</p>
+          <p class="info-value" data-field="opener"></p>
         </article>
         <article>
           <p class="info-label">Match</p>
-          <p class="info-value">${matchLabel}</p>
+          <p class="info-value" data-field="match"></p>
         </article>
       </section>
       <section class="panel stats-panel">
@@ -60,23 +60,33 @@ export class TitleScreen {
         <div class="stats-grid">
           <article>
             <p class="info-label">Rounds</p>
-            <p class="info-value">${this.stats.totalRounds}</p>
+            <p class="info-value" data-stat="rounds"></p>
           </article>
           <article>
-            <p class="info-label">${this.settings.playerXName} Wins</p>
-            <p class="info-value">${this.stats.wins.X}</p>
+            <p class="info-label">X Wins</p>
+            <p class="info-value" data-stat="wins-x"></p>
           </article>
           <article>
-            <p class="info-label">${this.settings.playerOName} Wins</p>
-            <p class="info-value">${this.stats.wins.O}</p>
+            <p class="info-label">O Wins</p>
+            <p class="info-value" data-stat="wins-o"></p>
           </article>
           <article>
             <p class="info-label">Draws</p>
-            <p class="info-value">${this.stats.draws}</p>
+            <p class="info-value" data-stat="draws"></p>
           </article>
         </div>
       </section>
     `;
+
+    screen.querySelector('[data-field="player-x"]').textContent = this.settings.playerXName;
+    screen.querySelector('[data-field="player-o"]').textContent = this.settings.playerOName;
+    screen.querySelector('[data-field="mode"]').textContent = modeLabel;
+    screen.querySelector('[data-field="opener"]').textContent = this.settings.startingPlayer;
+    screen.querySelector('[data-field="match"]').textContent = matchLabel;
+    screen.querySelector('[data-stat="rounds"]').textContent = String(this.stats.totalRounds);
+    screen.querySelector('[data-stat="wins-x"]').textContent = String(this.stats.wins.X);
+    screen.querySelector('[data-stat="wins-o"]').textContent = String(this.stats.wins.O);
+    screen.querySelector('[data-stat="draws"]').textContent = String(this.stats.draws);
 
     screen
       .querySelector('[data-action="start"]')
