@@ -12,37 +12,37 @@ export class SoundManager {
       "ode-to-joy": {
         id: "ode-to-joy",
         label: "Ode to Joy",
-        source: this.resolveTrackSource("ode-to-joy-8bit.wav"),
+        source: this.resolveTrackSource("ode-to-joy-16bit.wav"),
         credit: "Ludwig van Beethoven",
       },
       "fur-elise": {
         id: "fur-elise",
         label: "Fur Elise",
-        source: this.resolveTrackSource("fur-elise-8bit.wav"),
+        source: this.resolveTrackSource("fur-elise-16bit.wav"),
         credit: "Ludwig van Beethoven",
       },
       "minuet-in-g": {
         id: "minuet-in-g",
         label: "Minuet in G",
-        source: this.resolveTrackSource("minuet-in-g-8bit.wav"),
+        source: this.resolveTrackSource("minuet-in-g-16bit.wav"),
         credit: "Christian Petzold / J.S. Bach notebook",
       },
       "twinkle-twinkle": {
         id: "twinkle-twinkle",
         label: "Twinkle, Twinkle",
-        source: this.resolveTrackSource("twinkle-twinkle-8bit.wav"),
+        source: this.resolveTrackSource("twinkle-twinkle-16bit.wav"),
         credit: "Traditional",
       },
       "auld-lang-syne": {
         id: "auld-lang-syne",
         label: "Auld Lang Syne",
-        source: this.resolveTrackSource("auld-lang-syne-8bit.wav"),
+        source: this.resolveTrackSource("auld-lang-syne-16bit.wav"),
         credit: "Robert Burns / traditional",
       },
       "turkish-march": {
         id: "turkish-march",
         label: "Turkish March",
-        source: this.resolveTrackSource("turkish-march-8bit.wav"),
+        source: this.resolveTrackSource("turkish-march-16bit.wav"),
         credit: "Wolfgang Amadeus Mozart",
       },
     };
