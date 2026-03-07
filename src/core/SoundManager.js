@@ -1,30 +1,73 @@
 export class SoundManager {
-  constructor() {
+  constructor({ baseUrl = import.meta.env?.BASE_URL || "/" } = {}) {
     this.audioContext = null;
     this.musicAudio = null;
     this.musicEnabled = true;
     this.soundEffectsEnabled = true;
     this.currentTrackId = "ode-to-joy";
+    this.baseUrl = this.resolveBaseUrl(baseUrl);
     this.trackMap = {
       "ode-to-joy": {
         id: "ode-to-joy",
         label: "Ode to Joy",
-        source: "/audio/ode-to-joy-8bit.wav",
+        source: this.resolveTrackSource("ode-to-joy-8bit.wav"),
         credit: "Ludwig van Beethoven",
       },
       "fur-elise": {
         id: "fur-elise",
         label: "Fur Elise",
-        source: "/audio/fur-elise-8bit.wav",
+        source: this.resolveTrackSource("fur-elise-8bit.wav"),
         credit: "Ludwig van Beethoven",
       },
       "minuet-in-g": {
         id: "minuet-in-g",
         label: "Minuet in G",
-        source: "/audio/minuet-in-g-8bit.wav",
+        source: this.resolveTrackSource("minuet-in-g-8bit.wav"),
         credit: "Christian Petzold / J.S. Bach notebook",
       },
     };
+  }
+
+  normalizeBaseUrl(baseUrl) {
+    if (!baseUrl) {
+      return "/";
+    }
+
+    return baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+  }
+
+  resolveBaseUrl(baseUrl) {
+    const normalizedBaseUrl = this.normalizeBaseUrl(baseUrl);
+
+    if (normalizedBaseUrl !== "/" || typeof window === "undefined") {
+      return normalizedBaseUrl;
+    }
+
+    if (typeof document !== "undefined" && document.baseURI) {
+      try {
+        const basePath = new URL(document.baseURI).pathname;
+        const normalizedDocumentBase = this.normalizeBaseUrl(basePath);
+
+        if (normalizedDocumentBase !== "/") {
+          return normalizedDocumentBase;
+        }
+      } catch {
+        // Ignore invalid base URIs and fall back to location heuristics.
+      }
+    }
+
+    const { hostname = "", pathname = "/" } = window.location;
+    const pathSegments = pathname.split("/").filter(Boolean);
+
+    if (hostname.endsWith("github.io") && pathSegments.length > 0) {
+      return `/${pathSegments[0]}/`;
+    }
+
+    return normalizedBaseUrl;
+  }
+
+  resolveTrackSource(fileName) {
+    return `${this.baseUrl}audio/${fileName}`;
   }
 
   getAvailableTracks() {
